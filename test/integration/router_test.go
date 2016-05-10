@@ -400,7 +400,7 @@ func TestRouterPathSpecificity(t *testing.T) {
 		t.Fatalf("Couldn't get http endpoint: %v", err)
 	}
 
-	waitForRouterToBecomeAvailable("127.0.0.1", statsPort)
+	waitForRouterToBecomeAvailable(getRouteAddress(), statsPort)
 
 	now := unversioned.Now()
 
@@ -753,7 +753,7 @@ func TestRouterDuplications(t *testing.T) {
 		t.Fatalf("Couldn't get http endpoint: %v", err)
 	}
 
-	waitForRouterToBecomeAvailable("127.0.0.1", statsPort)
+	waitForRouterToBecomeAvailable(getRouteAddress(), statsPort)
 
 	//create routes
 	endpointEvent := &watch.Event{
@@ -880,9 +880,10 @@ func TestRouterStatsPort(t *testing.T) {
 	}
 	defer cleanUp(t, dockerCli, routerId)
 
-	waitForRouterToBecomeAvailable("127.0.0.1", statsPort)
+	routeAddress := getRouteAddress()
+	waitForRouterToBecomeAvailable(routeAddress, statsPort)
 
-	statsHostPort := fmt.Sprintf("%s:%d", "127.0.0.1", statsPort)
+	statsHostPort := fmt.Sprintf("%s:%d", routeAddress, statsPort)
 	creds := fmt.Sprintf("%s:%s", statsUser, statsPassword)
 	auth := fmt.Sprintf("Basic: %s", base64.StdEncoding.EncodeToString([]byte(creds)))
 	headers := map[string]string{"Authorization": auth}
@@ -934,7 +935,7 @@ func TestRouterHealthzEndpoint(t *testing.T) {
 		}
 		defer cleanUp(t, dockerCli, routerId)
 
-		host := "127.0.0.1"
+		host := getRouteAddress()
 		port := tc.port
 		if tc.port == 0 {
 			port = statsPort
@@ -971,11 +972,12 @@ func TestRouterServiceUnavailable(t *testing.T) {
 	}
 	defer cleanUp(t, dockerCli, routerId)
 
-	waitForRouterToBecomeAvailable("127.0.0.1", statsPort)
+	routeAddress := getRouteAddress()
+	waitForRouterToBecomeAvailable(routeAddress, statsPort)
 
 	schemes := []string{"http", "https"}
 	for _, scheme := range schemes {
-		uri := fmt.Sprintf("%s://%s", scheme, getRouteAddress())
+		uri := fmt.Sprintf("%s://%s", scheme, routeAddress)
 		hostAlias := fmt.Sprintf("www.route-%d.test", time.Now().UnixNano())
 		var tlsConfig *tls.Config
 		if scheme == "https" {
